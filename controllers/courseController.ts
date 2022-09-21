@@ -159,7 +159,7 @@ function join(req: Request, res: Response, next: NextFunction) {
         User.findByIdAndUpdate(currentUser, { $addToSet: joined })
             .then(() => {
                 res.locals.success = true;
-                if (!req.url.includes("api")) res.locals.redirect = "/courses";
+                // if (!req.url.includes("api")) res.locals.redirect = "/courses";
                 next();
             }).catch(error => {
                 next(error);

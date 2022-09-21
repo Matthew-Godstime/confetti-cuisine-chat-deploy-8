@@ -26,7 +26,7 @@
       </td>
       <% if (currentUser) { %>
       <td>
-        <a href="<%= `/courses/${course._id}/join` %>"> <%= course.joined ? ' Joined' : ' Join' %> </a>
+        <button class="course" data-id="<%= course._id %>"> <%= course.joined ? ' Joined' : ' Join' %> </button>
       </td>
       <td>
         <% if (currentUser.fullName === "God'stime Matthew") { %>

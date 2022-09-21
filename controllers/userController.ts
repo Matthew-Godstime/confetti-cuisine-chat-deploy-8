@@ -1,15 +1,14 @@
 import CustomError, { User } from "../models/user.js";
 import passport from "passport";
 import { NextFunction, Request, Response } from "express";
-import jsonwebtoken from "jsonwebtoken";
-import { Req } from "../interfaces/user.js";
-import sendEmail from "../Utils/Email/sendEmail.js";
 import { config } from "dotenv";
+import Token from "../models/token.js";
 
-config({path: './keys.env'});
+
+config({ path: './keys.env' });
 const customError = new CustomError();
 // Get req body
-function getUserParams(body: any) {
+export function getUserParams(body: any) {
     return {
         name: {
             first: body.first,
@@ -20,7 +19,17 @@ function getUserParams(body: any) {
         password: body.password
     };
 }
-
+function getDecodedParams(body: any) {
+    return {
+        name: {
+            first: body.name.first,
+            last: body.name.last,
+        },
+        email: body.email,
+        zipCode: parseInt(body.zipCode),
+        password: body.password
+    };
+}
 // Search the database for all user
 function userIndex(req: Request, res: Response, next: NextFunction): void {
     User.find().then(users => {
@@ -38,26 +47,26 @@ function userIndexView(req: Request, res: Response): void {
 }
 
 // Display user form
-function userNewView(req: Request, res: Response): void {
-    res.render("users/new");
+function userSignUpView(req: Request, res: Response): void {
+    res.render("users/signUp");
 }
 
 // Post request method for new user
 function createUser(req: any, res: Response, next: NextFunction) {
     // The if statement used to be req.skip in javaScript
+    const userData = res.locals.userData
     if (req.skip) next();
-    let newUser = new User(getUserParams(req.userParams));
-    console.log("Line 50",newUser);
-    
-    User.register(newUser, req.body.password, (e: Error, user: any) => {
+    let newUser = new User(getDecodedParams(userData));
+    User.register(newUser, userData.password, (e: Error, user: any) => {
         if (user) {
-            req.flash("success", `${user.fullName}'s account created successfully!`);
-            // res.locals.redirect = "/users";
-            next();
+            // req.flash("success", `${user.fullName}'s account created successfully!`);
+            res.render("verification/userActivated");
+            console.log("Created");
+            
         } else {
             req.flash("error", `Failed to create user account because: ${customError.message}.`);
             res.locals.redirect = "/users/new";
-            next()
+            next(e)
         }
     })
 }
@@ -162,58 +171,46 @@ function logout(req: Request, res: Response, next: NextFunction): void {
     next();
 }
 
-function verifyAccount(req: any, res: Response, next: NextFunction) {
-    const userParams = getUserParams(req.body);
-    User.findOne({ email: userParams.email }).exec()
-        .then(user => {
-            if (user) {
-                console.log("User", user);
-                req.flash("error", customError.message);
-                req.skip = true;
-                res.locals.redirect = "/users/new"
-                next();
-            }
-            const token = jsonwebtoken.sign(userParams, (process.env.JWT_ACC_ACTIVATE as any), { expiresIn: '20m' });
-            const link: string = `${process.env.CLIENT_URL}/users/create?token=${token}`
-            sendEmail(userParams.email, "Account Verification", { user: userParams, link: link }, "C:/gtech/Node/get-programming-with-nodejs/Pratical/confetti cuisine chat deploy 8/Utils/Template/resetPassword.ejs", req, res, next);
-            console.log(userParams);
-        }).catch(error => {
-            console.log(`Error ${error.message}`);
-            next(error);
-        })
+// render a forgot password view
+function forgotPassword(req: Request, res: Response) {
+    res.render("ForgotAndReset/forgotPassword");
 }
 
-function verifyJWToken(req: any, res: Response, next: NextFunction) {
+function resetPassword(req: Request, res: Response) {
     const token = req.query.token;
-    if (req.skip) next();
-    if (token) {
-        jsonwebtoken.verify((token as any), (process.env.JWT_ACC_ACTIVATE as any), (error: any, decoded: any) => {
-            if (error) {
-                req.flash("error", "Incorrect or expired link.");
-                req.skip = true;
-                console.log("Error 195", error);
-                next(error);
+    res.render("ForgotAndReset/resetPassword", { token: token });
+}
+
+function changePassword(req: Request, res: Response, next: NextFunction) {
+    const user = res.locals.userNewData.decoded.id;
+    const newPass = res.locals.userNewData.newPass;
+    if (res.locals.userNewData) {
+        User.findById(user).exec().then((user: any) => {
+            if (user) {
+                user.setPassword(newPass, (error: any, user: any) => {
+                    if (error) {
+                        req.flash("error", "Error occurred while changing password");
+                        next(error);
+                    }
+                    user.save();
+                    Token.findOne({ userId: user._id }).exec().then((token) => {
+                        token?.deleteOne();
+                        console.log("Deletion of the token was a success");
+                    }).catch(error => {
+                        console.log("Error while deleting the used token");
+                        next(error);
+                    })
+                    res.locals.userLoginDetails = { email: user.email, pass: newPass };
+                    res.render("ForgotAndReset/login");
+                })
             }
-            req.userParams = decoded;
-            console.log("User params", req.userParams);
-            
-            next();
-            // const userParams = decoded;
-            // User.findOne({ email: userParams.email }).exec()
-            //     .then(user => {
-            //         if (user) {
-            //             req.flash("error", customError.message);
-            //             req.skip = true;
-            //             next();
-            //         }
-            //         next();
-            // })
         })
     }
-    next();
 }
 
+
+
 export {
-    userIndex, userIndexView, userNewView, createUser, redirectUserView, authenticate, logout,
-    showUser, userShowView, editUser, updateUser, deleteUser, login, validate, verifyAccount, verifyJWToken
+    userIndex, userIndexView, userSignUpView, createUser, redirectUserView, authenticate, logout,
+    showUser, userShowView, editUser, updateUser, deleteUser, login, validate, forgotPassword, resetPassword, changePassword
 }

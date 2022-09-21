@@ -22,7 +22,7 @@ const mongooseParams = {
     useNewUrlParser: true,
     useUnifiedTopology: true,
 };
-mongoose.connect(process.env.DATABASELG!, (mongooseParams as any), (error) => {
+mongoose.connect(process.env.DATABASE!, (mongooseParams as any), (error) => {
     if (error) {
         console.log("Error in connection");
     } else {

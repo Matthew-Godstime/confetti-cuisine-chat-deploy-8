@@ -54,6 +54,7 @@ $(document).ready(() => {
   $("#modal-button").click(() => {
     $(".modal-body").html("");
     $.get(`/api/courses`, (results = {}) => {
+      console.log("Second", results)
       let data = results.data;
       if (!data || !data.courses) return;
       data.courses.forEach(course => {

@@ -5,7 +5,7 @@ import { compile } from "ejs";
 import { config } from "dotenv";
 
 config({path: '../keys.env'});
-export default function sendEmail(email: string, subject: any, payload: object, template: string, req?: Request, res?: Response, next?: NextFunction) {
+export default function sendEmail(email: string, subject: any, payload: object, template: string, req: Request, res: Response, next: NextFunction) {
     const transporter = createTransport({
         host: process.env.HOST,
         port: 465,
@@ -19,21 +19,21 @@ export default function sendEmail(email: string, subject: any, payload: object, 
 
     const compiledTemplate = compile(readFileSync(template, "utf8"));
     const mailOption: SendMailOptions = {
-        from: `GTech Team ${process.env.EMAIL}`,
+        from: `GTech-Confetti Cuisine ${process.env.EMAIL}`,
         to: email,
         subject: subject,
         html: compiledTemplate(payload)
     };
-    console.log("User Email", mailOption);
-
     transporter.sendMail(mailOption, (error, info) => {
         if (error) {
-            req?.flash("error", `Error occurred while parsing token ${error}`)
-            // next()?;
+            req.flash("error", `Error occurred while parsing token ${error}`)
+            next(error);
         } else {
-            console.log("Email successfully sent");
-            
-            res?.render("Verification/emailSent");
+            if (mailOption.subject === "Account Verification") {
+                res.render("verification/emailSent");
+            } else {
+                res.render("ForgotAndReset/emailSent");
+            }
         }
     })    
 }

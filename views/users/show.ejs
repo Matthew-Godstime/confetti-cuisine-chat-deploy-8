@@ -43,7 +43,7 @@
 <div class="center">
   <% if (currentUser && user.id === currentUser.id) { %>
     <a class="button" href="<%= `/users/${user._id}/delete?_method=DELETE` %>"
-      onclick="return confirm('Are you sure you want to delete this record?')" a>Delete</a>
+      onclick="return confirm('Are you sure you want to delete this record?')" a>Delete Account</a>
 
   <% } %>
 </div>

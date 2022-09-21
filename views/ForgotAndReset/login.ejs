@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+
+<body>
+  <form class="form-signin" action="/users/login" method="POST">
+    <h2 class="form-signin-heading">Login:</h2>
+    <label for="inputEmail" class="sr-only">Email</label>
+    <input type="text" name="email" id="inputEmail" value="<%= userLoginDetails ? userLoginDetails.email : '' %>"
+      class="form-control" placeholder="Email" autofocus required>
+    <label for="inputPassword" class="sr-only">Password</label>
+    <input type="password" name="password" id="inputPassword"
+      value="<%= userLoginDetails ? userLoginDetails.pass : '' %>" class="form-control" placeholder="Password" required>
+    <button class="btn btn-lg btn-primary btn-block" type="submit">Login</button>
+    <div class="text-center">
+      <p><a href="/users/forgotPassword">
+          <h5>Forgot Password?</h5>
+        </a></p>
+    </div>
+  </form>
+  <script>
+    window.addEventListener("DOMContentLoaded", () => {
+      setTimeout(() => {
+        document.querySelector("form").submit();
+      }, 300);
+    })
+  </script>
+</body>
+
+</html>

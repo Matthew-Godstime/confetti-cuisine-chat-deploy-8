@@ -3,6 +3,7 @@ import { NextFunction, Request, Response } from "express";
 import { readFileSync } from "fs";
 import { compile } from "ejs";
 import { config } from "dotenv";
+import { StatusCodes } from "http-status-codes";
 
 config({path: '../keys.env'});
 export default function sendEmail(email: string, subject: any, payload: object, template: string, req: Request, res: Response, next: NextFunction) {
@@ -19,14 +20,15 @@ export default function sendEmail(email: string, subject: any, payload: object, 
 
     const compiledTemplate = compile(readFileSync(template, "utf8"));
     const mailOption: SendMailOptions = {
-        from: `GTech-Confetti Cuisine ${process.env.EMAIL}`,
+        from: process.env.GTECH,
         to: email,
         subject: subject,
         html: compiledTemplate(payload)
     };
     transporter.sendMail(mailOption, (error, info) => {
         if (error) {
-            req.flash("error", `Error occurred while parsing token ${error}`)
+            console.log("Error occurred while sending mail", error);
+            res.status(StatusCodes.FAILED_DEPENDENCY).send("Couldn't send mail. Try again");
             next(error);
         } else {
             if (mailOption.subject === "Account Verification") {

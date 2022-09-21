@@ -6,10 +6,10 @@ import { forgotPassword, verifyAccount, verifyJWToken, verifyPasswordToken } fro
 const authRouter: Router = express.Router();
 
 
-authRouter.post("/authenticate/activate", validate, verifyAccount);
-authRouter.post("/authenticate/forgotPassword", forgotPassword);
-authRouter.put("/authenticate/resetPassword", verifyPasswordToken, changePassword, authenticate);
+authRouter.post("/authenticate/activate", validate, verifyAccount, redirectUserView);
 authRouter.get("/:id/activated/create", verifyJWToken, createUser, redirectUserView);
+authRouter.post("/authenticate/forgotPassword", forgotPassword, redirectUserView);
+authRouter.put("/authenticate/resetPassword", verifyPasswordToken, changePassword, redirectUserView, authenticate);
 
 
 export default authRouter;

@@ -53,22 +53,22 @@ function userSignUpView(req: Request, res: Response): void {
 
 // Post request method for new user
 function createUser(req: any, res: Response, next: NextFunction) {
-    // The if statement used to be req.skip in javaScript
-    const userData = res.locals.userData
-    if (req.skip) next();
-    let newUser = new User(getDecodedParams(userData));
-    User.register(newUser, userData.password, (e: Error, user: any) => {
-        if (user) {
-            // req.flash("success", `${user.fullName}'s account created successfully!`);
-            res.render("verification/userActivated");
-            console.log("Created");
-            
-        } else {
-            req.flash("error", `Failed to create user account because: ${customError.message}.`);
-            res.locals.redirect = "/users/new";
-            next(e)
-        }
-    })
+    if (!req.skip) {
+        const userData = res.locals.userData
+        let newUser = new User(getDecodedParams(userData));
+        User.register(newUser, userData.password, (e: Error, user: any) => {
+            if (user) {
+                res.render("verification/userActivated");
+            } else {
+                req.flash("error", `Failed to create user account because: ${customError.message}.`);
+                res.locals.redirect = "/users/signUp";
+                next()
+            }
+        })
+    } else {
+        next();
+    }
+    
 }
 
 // authenticate
@@ -152,9 +152,9 @@ function validate(req: any, res: Response, next: NextFunction) {
     req.getValidationResult().then((error: any) => {
         if (!error.isEmpty()) {
             let messages = error.array().map((e: any) => e.msg);
-            req.skip = true; // I used to add this line in JavaScript
+            req.skip = true;
             req.flash("error", messages.join(" and "));
-            res.locals.redirect = "/users/new";
+            res.locals.redirect = "/users/signUp";
             next();
         } else {
             next();
@@ -176,35 +176,41 @@ function forgotPassword(req: Request, res: Response) {
     res.render("ForgotAndReset/forgotPassword");
 }
 
+// Render the view for new password
 function resetPassword(req: Request, res: Response) {
     const token = req.query.token;
     res.render("ForgotAndReset/resetPassword", { token: token });
 }
 
-function changePassword(req: Request, res: Response, next: NextFunction) {
-    const user = res.locals.userNewData.decoded.id;
-    const newPass = res.locals.userNewData.newPass;
-    if (res.locals.userNewData) {
-        User.findById(user).exec().then((user: any) => {
-            if (user) {
-                user.setPassword(newPass, (error: any, user: any) => {
-                    if (error) {
-                        req.flash("error", "Error occurred while changing password");
-                        next(error);
-                    }
-                    user.save();
-                    Token.findOne({ userId: user._id }).exec().then((token) => {
-                        token?.deleteOne();
-                        console.log("Deletion of the token was a success");
-                    }).catch(error => {
-                        console.log("Error while deleting the used token");
-                        next(error);
+// Change the password
+function changePassword(req: any, res: Response, next: NextFunction) {
+    if (!req.skip) {
+        const user = res.locals.userNewData.decoded.id;
+        const newPass = res.locals.userNewData.newPass;
+        if (user && newPass) {
+            User.findById(user).exec().then((user: any) => {
+                if (user) {
+                    user.setPassword(newPass, (error: any, user: any) => {
+                        if (error) {
+                            req.flash("error", "Error occurred while changing password");
+                            next(error);
+                        }
+                        user.save();
+                        Token.findOne({ userId: user._id }).exec().then((token) => {
+                            token?.deleteOne();
+                            console.log("Deletion of the token was a success");
+                        }).catch(error => {
+                            console.log("Error while deleting the used token");
+                            next(error);
+                        })
+                        res.locals.userLoginDetails = { email: user.email, pass: newPass };
+                        res.render("ForgotAndReset/login");
                     })
-                    res.locals.userLoginDetails = { email: user.email, pass: newPass };
-                    res.render("ForgotAndReset/login");
-                })
-            }
-        })
+                }
+            })
+        }
+    } else {
+        next();
     }
 }
 

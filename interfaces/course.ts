@@ -1,6 +1,6 @@
 export interface CourseInterface {
-    title: object,
-    description: object,
-    maxStudents: object,
+    title: string,
+    description: string,
+    maxStudents: number,
     cost: number,
 }

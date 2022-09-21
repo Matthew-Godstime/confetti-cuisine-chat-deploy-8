@@ -1,6 +1,6 @@
 export interface SubscriberInterface {
-    name: object,
-    email: object,
-    zipCode: object,
+    name: string,
+    email: string,
+    zipCode: number,
     courses: object[],
 }

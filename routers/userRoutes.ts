@@ -1,6 +1,6 @@
 import express, { Router } from "express";
 import {
-    createUser, deleteUser, editUser, redirectUserView, showUser, validate, login,
+    deleteUser, editUser, redirectUserView, showUser, login,
     updateUser, userIndex, userIndexView, userSignUpView, userShowView, authenticate, logout, forgotPassword, resetPassword,
 } from "../controllers/userController.js";
 

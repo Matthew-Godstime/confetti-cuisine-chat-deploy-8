@@ -9,7 +9,7 @@ const authRouter: Router = express.Router();
 authRouter.post("/authenticate/activate", validate, signUp, redirectUserView);
 authRouter.get("/:id/activated/create", activateAccount, createUser, redirectUserView);
 authRouter.post("/authenticate/forgotPassword", forgotPassword, redirectUserView);
-authRouter.put("/authenticate/resetPassword", verifyPasswordToken, changePassword, redirectUserView, authenticate);
+authRouter.put("/authenticate/resetPassword", verifyPasswordToken, changePassword, redirectUserView);
 
 
 export default authRouter;

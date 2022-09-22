@@ -30,20 +30,21 @@
 </table>
 
 
-<div>
-  <% if (currentUser.fullName === "God'stime Matthew") { %>
-  <a class="button" href="<%=`/courses/${course._id}/edit`%>">
-    Edit Course Details
-  </a>
-  <% } %>
-</div>
-<div>
-  <% if (currentUser.fullName === "God'stime Matthew") { %>
-    <a class="button" href="<%= `/courses/${course._id}/delete?_method=DELETE` %>"
-      onclick="return confirm('Are you sure you want to delete this record?')" a>Delete</a>
+<% if (loggedIn) { %>
+  <% if (currentUser.fullName==="God'stime Matthew" ) { %>
+    <div>
+      <a class="button" href="<%=`/courses/${course._id}/edit`%>">
+        Edit Course Details
+      </a>
+    </div>
+    <div>
+      <a class="button" href="<%= `/courses/${course._id}/delete?_method=DELETE` %>"
+        onclick="return confirm('Are you sure you want to delete this record?')" a>Delete</a>
+    </div>
+  
+    <% } %>
 
-  <% } %>
-</div>
+<% } %>
 <div>
   <a class="button" href="/courses">View all courses</a>
 </div>

@@ -4,7 +4,7 @@
     <tr>
       <th>Title</th>
       <th>Description</th>
-      <% if (currentUser) { %>
+      <% if (loggedIn) { %>
       <th>Join</th>
       <% if (currentUser.fullName === "God'stime Matthew") { %>
       <th>Edit</th>
@@ -24,7 +24,7 @@
       <td>
         <%= course.description %>
       </td>
-      <% if (currentUser) { %>
+      <% if (loggedIn) { %>
       <td>
         <button class="course" data-id="<%= course._id %>"> <%= course.joined ? ' Joined' : ' Join' %> </button>
       </td>

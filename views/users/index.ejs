@@ -7,8 +7,7 @@
       <th>Name</th>
       <th>Email</th>
       <th>Zip Code</th>
-      <th><%= currentUser ? "Edit" : "" %></th>
-      <th><%= currentUser ? '' : ' Login' %></th>
+      <th><%= loggedIn ? "Edit" : "" %></th>
     </tr>
   </thead>
   <tbody>
@@ -25,20 +24,16 @@
       <td>
         <%= user.zipCode %>
       </td>
-      <td>
-        <% if (currentUser && user.id === currentUser.id) { %>
+      <% if (loggedIn) { %>
+             <td>
+        <% if (user.id === currentUser.id) { %>
         <a href="<%=`/users/${user._id}/edit`%>">
           Edit
         </a>
         <% } %>
       </td>
-      <td>
-        <% if (currentUser) { %>
-        <% } else { %>
-         <a href="<%= `/users/login` %>"><p>Login</p></a>
-        <% } %>
-      </td>
     </tr>
+      <% } %>
     <% }); %>
   </tbody>
 </table>

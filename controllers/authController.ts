@@ -15,7 +15,7 @@ config({ path: './keys.env' });
 const customError = new CustomError();
 
 // Send a token via mail to the newly registered user, for verification
-function verifyAccount(req: any, res: Response, next: NextFunction) {
+function signUp(req: any, res: Response, next: NextFunction) {
     if (!req.skip) {
         const userParams = getUserParams(req.body);
         User.findOne({ email: userParams.email }).exec().then(user => {
@@ -39,7 +39,7 @@ function verifyAccount(req: any, res: Response, next: NextFunction) {
 }
 
 // Verify the new registered user
-function verifyJWToken(req: any, res: Response, next: NextFunction) {
+function activateAccount(req: any, res: Response, next: NextFunction) {
     const token = req.query.token;
     if (token) {
         jsonwebtoken.verify((token as any), (process.env.JWT_ACC_ACTIVATE as any), (error: any, decoded: any) => {
@@ -49,8 +49,20 @@ function verifyJWToken(req: any, res: Response, next: NextFunction) {
                 req.skip = true;
                 next();
             } else {
-                res.locals.userData = decoded;
-                next();
+                User.findOne({ email: decoded.email }).exec().then(user => {
+                    if (user) {
+                        req.skip = true;
+                        req.flash("error", customError.message);
+                        res.locals.redirect = "/users/signUp";
+                        next();
+                    } else {
+                        res.locals.userData = decoded;
+                        next();
+                    }
+                }).catch(error => {
+                    console.log("Unable to search for a user", error);
+                    next(error);
+                })
             }
         })
     }
@@ -98,18 +110,28 @@ function forgotPassword(req: Request, res: Response, next: NextFunction) {
 function verifyPasswordToken(req: any, res: Response, next: NextFunction) {
     const { newPass, token } = req.body;
     if (token) {
-        jsonwebtoken.verify((token as any), (process.env.RESET_PASSWORD as any), (error: any, decoded: any) => {
-            if (error) {
+        Token.findOne({ token: token }).exec().then(userToken => {
+            if (userToken) {
+                jsonwebtoken.verify(userToken.token, (process.env.RESET_PASSWORD as any), (error: any, decoded: any) => {
+                    if (error) {
+                        req.flash("error", "Incorrect or expired link.");
+                        res.locals.redirect = `/users/${token}/resetPassword`;
+                        req.skip = true;
+                        next();
+                    }
+                    else {
+                        res.locals.userNewData = { newPass: newPass, decoded: decoded };
+                        next();
+                    }
+                });
+            } else {
                 req.flash("error", "Incorrect or expired link.");
                 res.locals.redirect = `/users/${token}/resetPassword`;
                 req.skip = true;
                 next();
-            } else {
-                res.locals.userNewData = { newPass: newPass, decoded: decoded };
-                next();
             }
         })
-    }
+    } else next();
 }
 
-export { verifyAccount, verifyJWToken, forgotPassword, verifyPasswordToken };
+export { signUp, activateAccount, forgotPassword, verifyPasswordToken };

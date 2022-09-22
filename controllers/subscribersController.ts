@@ -46,6 +46,8 @@ function createSubscriber(req: Request, res: Response, next: NextFunction): void
         next();
     }).catch(error => {
         console.log(`Error saving subscriber:${error}`);
+        req.flash("error", error.message);
+        res.locals.redirect = "/subscribers/new"
         next(error);
     })
 }

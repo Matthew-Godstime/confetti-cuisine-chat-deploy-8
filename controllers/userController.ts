@@ -6,7 +6,6 @@ import Token from "../models/token.js";
 
 
 config({ path: './keys.env' });
-const customError = new CustomError();
 // Get req body
 export function getUserParams(body: any) {
     return {
@@ -27,18 +26,24 @@ function getDecodedParams(body: any) {
         },
         email: body.email,
         zipCode: parseInt(body.zipCode),
-        password: body.password
     };
 }
 // Search the database for all user
 function userIndex(req: Request, res: Response, next: NextFunction): void {
-    User.find().then(users => {
-        res.locals.users = users;
+    const loggedIn = res.locals.loggedIn
+    if (loggedIn) {
+        User.find().then(users => {
+            res.locals.users = users;
+            next();
+        }).catch(error => {
+            console.log(`Error fetching user: ${error}`);
+            next(error);
+        })
+    } else {
+        req.flash("error", "Login to see users");
+        res.locals.redirect = "/users/login"
         next();
-    }).catch(error => {
-        console.log(`Error fetching user: ${error}`);
-        next(error);
-    })
+    }
 }
 
 // Display user index view
@@ -56,11 +61,11 @@ function createUser(req: any, res: Response, next: NextFunction) {
     if (!req.skip) {
         const userData = res.locals.userData
         let newUser = new User(getDecodedParams(userData));
-        User.register(newUser, userData.password, (e: Error, user: any) => {
+        User.register(newUser, userData.password, (error: Error, user: any) => {
             if (user) {
                 res.render("verification/userActivated");
             } else {
-                req.flash("error", `Failed to create user account because: ${customError.message}.`);
+                req.flash("error", `Failed to create user account because: ${error.message}.`);
                 res.locals.redirect = "/users/signUp";
                 next()
             }
@@ -164,7 +169,7 @@ function validate(req: any, res: Response, next: NextFunction) {
 
 function logout(req: Request, res: Response, next: NextFunction): void {
     req.logout((error) => {
-        if (error) return next(error);
+        if (error) next(error);
     })
     req.flash("success", "You have been logged out!");
     res.locals.redirect = "/";

@@ -6,5 +6,9 @@ export function homeIndex(req: Request, res: Response): void {
 
 
 export function chat(req: Request, res: Response) {
-    res.render("chat");
+    if (res.locals.loggedIn) res.render("chat");
+    else {
+        req.flash("error", "Login in first to chat");
+        res.redirect("/users/login");
+    }
 }

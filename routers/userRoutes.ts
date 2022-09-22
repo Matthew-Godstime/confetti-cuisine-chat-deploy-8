@@ -6,13 +6,13 @@ import {
 
 const userRouter: Router = express.Router();
 
-userRouter.get("/", userIndex, userIndexView)
+userRouter.get("/", userIndex, redirectUserView, userIndexView)
 userRouter.get("/signUp", userSignUpView);
 userRouter.get("/login", login);
 userRouter.post("/login", authenticate);
 userRouter.get("/logout", logout, redirectUserView);
 userRouter.get("/forgotPassword", forgotPassword);
-userRouter.get("/:id/resetPassword", resetPassword);
+userRouter.get("/:email/resetPassword", resetPassword);
 userRouter.get("/:id", showUser, userShowView);
 userRouter.get("/:id/edit", editUser);
 userRouter.put("/:id/update", updateUser, redirectUserView);
